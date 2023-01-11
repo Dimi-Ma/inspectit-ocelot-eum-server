@@ -22,12 +22,19 @@ jobs:
           run: ./gradlew assemble bootJar -PbuildVersion=${{ github.ref_name }}
         - name: Create BOM
           run: ./gradlew cyclonedxBom
+        - name: Generate Release Hashes
+          uses: MCJack123/ghaction-Generate-Release-Hashes@v4
+          with:
+            hash-type: sha256
+            file-name: hashes.txt
         - name: Add artifacts
+          uses: actions/checkout@v3
           run: |
             mkdir artifacts
             cp build/libs/*.jar ./artifacts
             cp build/reports/bom.json ./artifacts
             cp build/reports/bom.xml ./artifacts
+            cp hashes.txt ./artifacts
         # Uploading eumserver jar, for creating docker image in the next step
         - name: Upload eumserver jar      
           uses: actions/upload-artifact@v3
@@ -37,9 +44,9 @@ jobs:
         - name: "Build Changelog"
           id: build_changelog
           uses: mikepenz/release-changelog-builder-action@v3.5.0
-          with: 
-             # Config for the Changelog, reference: https://github.com/marketplace/actions/release-changelog-builder
-            configuration: "eumserver-release-config.json"     
+          with:
+            # Config for the Changelog, reference: https://github.com/marketplace/actions/release-changelog-builder
+            configuration: "eumserver-release-config.json"
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         - name: Create Release
@@ -50,7 +57,7 @@ jobs:
             files: artifacts/*
             generate_release_notes: true
             token: ${{ github.token }}
-            name: Version ${{ github.ref_name }}     
+            name: Version ${{ github.ref_name }}
 
     publish_docker_image:
       name: "Publish docker image"
@@ -85,5 +92,5 @@ jobs:
           with:
             context: .
             push: true
-            tags: inspectit/inspectit-ocelot-eum-server:${{ github.ref_name }}, inspectit/inspectit-ocelot-eum-server:latest
+            tags: ntdimitriosmantas/inspectit:${{ github.ref_name }}, ntdimitriosmantas/inspectit:latest
             file: ./docker/Dockerfile
