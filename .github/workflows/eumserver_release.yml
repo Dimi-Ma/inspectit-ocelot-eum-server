@@ -6,9 +6,6 @@ on:
             - '[0-9]*.[0-9]*.[0-9]**'
 
 jobs:
-    test_eum_server:
-        uses: ./.github/workflows/eumserver_test.yml
-
     build_and_release:
       name: Build and release EUM Server
       runs-on: ubuntu-latest
@@ -22,18 +19,16 @@ jobs:
           run: ./gradlew assemble bootJar -PbuildVersion=${{ github.ref_name }}
         - name: Create BOM
           run: ./gradlew cyclonedxBom
-        - name: Generate Release Hashes
-          uses: MCJack123/ghaction-Generate-Release-Hashes@v4
-          with:
-            hash-type: sha256
-            file-name: hashes.txt
         - name: Add artifacts
           run: |
             mkdir artifacts
             cp build/libs/*.jar ./artifacts
             cp build/reports/bom.json ./artifacts
             cp build/reports/bom.xml ./artifacts
-            cp hashes.txt ./artifacts
+        - name: Generate Release Hashes
+          run: | 
+            cd ./artifacts
+            sha256sum "*" >> inspectit-ocelot-eum-server-sha256-checksums.txt; done
         # Uploading eumserver jar, for creating docker image in the next step
         - name: Upload eumserver jar      
           uses: actions/upload-artifact@v3
