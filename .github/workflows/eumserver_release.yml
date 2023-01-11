@@ -28,7 +28,6 @@ jobs:
             hash-type: sha256
             file-name: hashes.txt
         - name: Add artifacts
-          uses: actions/checkout@v3
           run: |
             mkdir artifacts
             cp build/libs/*.jar ./artifacts
